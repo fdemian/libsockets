@@ -19,24 +19,17 @@
 #define MAX_CONEXIONES 10
 #define LOCALHOST "127.0.0.1"
 
-void funcionLoca(struct NIPC datos, int socket);
+void actionServer(struct NIPC datos, int socket);
 
 int main(void)
 {
   
-  //int status = 0;  
-  int * listener = malloc(sizeof(int));
-  int * fdmax = malloc(sizeof(int));
-  fd_set * master = malloc(sizeof(fd_set));
-  fd_set * read_fds = malloc(sizeof(fd_set));
-      
-  inicializar_servidor(master, read_fds, listener, fdmax, MAX_CONEXIONES, PUERTO);
-  servidor(funcionLoca, *fdmax, *listener, *master, *read_fds);
+  servidor(actionServer, PUERTO, MAX_CONEXIONES);
   
   return 0;
 }
 
-void funcionLoca(struct NIPC datos, int socket)
+void actionServer(struct NIPC datos, int socket)
 {
    printf("%d > %s\n", socket, datos.Payload);    
 }

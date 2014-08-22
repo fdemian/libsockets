@@ -46,33 +46,42 @@ int inicializar_servidor(fd_set * master, fd_set * read_fds, int * listener, int
 	return SUCCESS;
 }
 
-void servidor(void (*manejadorDeDatos)(struct NIPC datos, int socket), int fdmax, int listener, fd_set master, fd_set read_fds)
+void servidor(void (*manejadorDeDatos)(struct NIPC datos, int socket), int puerto, int maxConecciones)
 {  	
   struct sockaddr_in remoteaddr;	
   int connectionIndex;
   int estadoDatosCliente;
   struct NIPC datosRecibidos;			  
-    
+
+    //int status = 0;  
+  int * listener = malloc(sizeof(int));
+  int * fdmax = malloc(sizeof(int));
+  fd_set * master = malloc(sizeof(fd_set));
+  fd_set * read_fds = malloc(sizeof(fd_set));
+      
+  inicializar_servidor(master, read_fds, listener, fdmax, maxConecciones, puerto);    
+
+
 	for (;;) 
 	{
-		read_fds = master; // copiarlo
-		if (select(fdmax + 1, &read_fds, NULL, NULL, NULL ) == -1) {
+		*read_fds = *master; // copiarlo
+		if (select(*fdmax + 1, read_fds, NULL, NULL, NULL ) == -1) {
 			perror(" error en el select");
 			break;
 		}
 
 		// explorar conexiones existentes en busca de datos que leer
-		for (connectionIndex = 0; connectionIndex <= fdmax; connectionIndex++) {
-			if (FD_ISSET(connectionIndex, &read_fds)) //tenemos datos!!
+		for (connectionIndex = 0; connectionIndex <= *fdmax; connectionIndex++) {
+			if (FD_ISSET(connectionIndex, read_fds)) //tenemos datos!!
 			{
-				if (connectionIndex == listener) 
+				if (connectionIndex == *listener) 
 				{
 					// Handle new connections!
-					handleConnection(&remoteaddr, listener, &fdmax, &master);
+					handleConnection(&remoteaddr, *listener, fdmax, master);
 				}
 				else
 				{					
-					estadoDatosCliente = handleClientDataRecieved(connectionIndex, &master,fdmax, listener, &datosRecibidos);						
+					estadoDatosCliente = handleClientDataRecieved(connectionIndex, master,*fdmax, *listener, &datosRecibidos);						
 					if(estadoDatosCliente != ERROR_RECEIVE_SERV)
 					{
 					  manejadorDeDatos(datosRecibidos, connectionIndex);
