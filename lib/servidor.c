@@ -143,7 +143,7 @@ int handleClientDataRecieved(int cliente, fd_set * master, int fdmax, int listen
 
   int nbytes;  
   char buffer[BUFFSIZE]; // buffer para datos del cliente	        
-  char * orden;
+  char * orden = NULL;
   struct Paquete paqueteRecibido;     
   
   if ((nbytes = recv(cliente, buffer, BUFFSIZE, 0)) <= 0) 
