@@ -25,7 +25,6 @@ struct Paquete Serializar(struct NIPC paqueteAserializar)
 struct NIPC Deserializar(char* mensajeSerializado)
 {
 	struct NIPC mensajeDeserializado;
-	//void * i;
 
 	memcpy(&(mensajeDeserializado.Type), mensajeSerializado+1, 1);
 	memcpy(&(mensajeDeserializado.Length),mensajeSerializado+3, sizeof(mensajeDeserializado.Length));
@@ -34,12 +33,6 @@ struct NIPC Deserializar(char* mensajeSerializado)
 	{
 		mensajeDeserializado.Payload = calloc(1, mensajeDeserializado.Length + 1);
 		strncpy( mensajeDeserializado.Payload, mensajeSerializado + 6, mensajeDeserializado.Length );
-		/*
-		mensajeDeserializado.Payload = malloc(sizeof(char) * mensajeDeserializado.Length);
-		memcpy(mensajeDeserializado.Payload,mensajeSerializado+6,mensajeDeserializado.Length); // es 6 xq son 3 de control, 1 de Type y 2 de Length
-		i = realloc( mensajeDeserializado.Payload , sizeof(char) * mensajeDeserializado.Length );
-		strncpy( mensajeDeserializado.Payload, mensajeDeserializado.Payload, mensajeDeserializado.Length);
-		*/
 	}
 
 	return mensajeDeserializado;

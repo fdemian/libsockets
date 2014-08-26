@@ -53,7 +53,6 @@ void servidor(void (*manejadorDeDatos)(struct NIPC datos, int socket), int puert
   int estadoDatosCliente;
   struct NIPC datosRecibidos;			  
 
-    //int status = 0;  
   int * listener = malloc(sizeof(int));
   int * fdmax = malloc(sizeof(int));
   fd_set * master = malloc(sizeof(fd_set));
@@ -90,6 +89,14 @@ void servidor(void (*manejadorDeDatos)(struct NIPC datos, int socket), int puert
 			}
 		}
 	}    
+
+
+  // Liberar los datos allocados. 
+  free(listener);
+  free(fdmax);
+  free(master);
+  free(read_fds);
+
 }
 
 
@@ -115,7 +122,7 @@ void handleConnection(struct sockaddr_in * remoteaddr,int listener, int * fdmax,
 }
 
 // Gestionar datos de un cliente
-int handleClientDataRecieved(int cliente,fd_set * master, int fdmax, int listener, struct NIPC * datos)
+int handleClientDataRecieved(int cliente, fd_set * master, int fdmax, int listener, struct NIPC * datos)
 {
   int nbytes;  
   char buffer[BUFFSIZE]; // buffer para datos del cliente	        
@@ -137,7 +144,8 @@ int handleClientDataRecieved(int cliente,fd_set * master, int fdmax, int listene
     orden[nbytes] = '\0';    
     paqueteRecibido.Serializado = orden;
     paqueteRecibido.Length = nbytes;
-    *datos = Deserializar(paqueteRecibido.Serializado);        
+    *datos = Deserializar(paqueteRecibido.Serializado); 
+    free(orden);       
   }
   
   return SUCCESS;  
