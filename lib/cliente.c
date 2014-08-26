@@ -35,10 +35,12 @@ int mandarMensaje(char * mensaje, int tipoMensaje, int socket)
 
   recibido = Serializar(paqueteAMandar);
 
-  if(send(socket,recibido.Serializado , recibido.Length , 0)== -1)
+  if(send(socket, recibido.Serializado, recibido.Length, 0)== -1)
   {
     return ERROR_SEND;
   }
+
+  free(recibido.Serializado);
 
   return SUCCESS;
 }
