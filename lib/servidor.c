@@ -49,7 +49,7 @@ int inicializar_servidor(fd_set * master, fd_set * read_fds, int * listener, int
 void servidor(void (*manejadorDeDatos)(struct NIPC datos, int socket), int puerto, int maxConecciones)
 {  	
   struct sockaddr_in remoteaddr;	
-  int connectionIndex;
+  int connectionIndex = 0;
   int estadoDatosCliente;
   struct NIPC datosRecibidos;			  
 
@@ -57,6 +57,10 @@ void servidor(void (*manejadorDeDatos)(struct NIPC datos, int socket), int puert
   int * fdmax = malloc(sizeof(int));
   fd_set * master = malloc(sizeof(fd_set));
   fd_set * read_fds = malloc(sizeof(fd_set));
+
+  datosRecibidos.Length = 0;
+  datosRecibidos.Payload = malloc(0);
+  datosRecibidos.Type = 0;
       
   inicializar_servidor(master, read_fds, listener, fdmax, maxConecciones, puerto);    
 
@@ -84,6 +88,7 @@ void servidor(void (*manejadorDeDatos)(struct NIPC datos, int socket), int puert
 					if(estadoDatosCliente != ERROR_RECEIVE_SERV)
 					{
 					  manejadorDeDatos(datosRecibidos, connectionIndex);
+				          free(datosRecibidos.Payload);
 					}
 				}
 			}
@@ -119,6 +124,7 @@ void handleConnection(struct sockaddr_in * remoteaddr,int listener, int * fdmax,
 		  *fdmax = newfd;
 	  }
   }  
+
 }
 
 // Gestionar datos de un cliente
@@ -132,7 +138,7 @@ int handleClientDataRecieved(int cliente, fd_set * master, int fdmax, int listen
   if ((nbytes = recv(cliente, buffer, BUFFSIZE, 0)) <= 0) 
   {
     // error o conexion cerrada por el cliente
-    close(cliente); // hasta luego!
+    close(cliente);
     FD_CLR(cliente, master); // eliminar del conjunto maestro       
     return ERROR_RECEIVE_SERV;
   }
@@ -145,7 +151,7 @@ int handleClientDataRecieved(int cliente, fd_set * master, int fdmax, int listen
     paqueteRecibido.Serializado = orden;
     paqueteRecibido.Length = nbytes;
     *datos = Deserializar(paqueteRecibido.Serializado); 
-    free(orden);       
+    free(orden);
   }
   
   return SUCCESS;  
