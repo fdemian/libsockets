@@ -67,9 +67,9 @@ int esperarDatos(int socket, struct NIPC * datos)
 
     *datos = Deserializar(recibido.Serializado);
 
-    status = SUCCESS;    
+    free(orden);       
 
-    free(orden);     
+    status = SUCCESS;    
 
   } 
   else

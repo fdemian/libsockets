@@ -32,4 +32,5 @@ int main(void)
 void actionServer(struct NIPC datos, int socket)
 {
    printf("%d > %s\n", socket, datos.Payload);    
+   mandarMensaje("Puto!", 40, socket);
 }

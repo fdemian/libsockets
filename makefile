@@ -7,8 +7,8 @@ FLAGS = -Werror -Wall
 SEVER_SOURCE = ejemplo_servidor.c 
 SEVER_NAME = serv
 
-CLIENT_SOURCE = ejemplo_cliente1.c 
-CLIENT_NAME = cli1
+CLIENT_SOURCE = ejemplo_cliente.c 
+CLIENT_NAME = cli
 
 # Agregar las dependencias de compilacion aca.
 #DEPENDS = 

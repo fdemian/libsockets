@@ -24,9 +24,17 @@ int main(void)
   int socketDescriptor; 
   char * mensaje = "Hola!";
   int tipoMensaje = 1;
+
+  struct NIPC datos;
   
   socketDescriptor = inicializar_cliente(LOCALHOST, PUERTO);
   mandarMensaje(mensaje, tipoMensaje, socketDescriptor);
-   
+  
+  esperarDatos(socketDescriptor, &datos);
+
+  printf("%s", datos.Payload);
+
+  free(datos.Payload);
+
   return SUCCESS;
 }

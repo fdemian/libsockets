@@ -169,9 +169,9 @@ int handleClientDataRecieved(int cliente, fd_set * master, int fdmax, int listen
   return SUCCESS;  
 }
 
-/*
 int mandarMensaje(char * mensaje,int tipoMensaje,int socket)
 {
+
   struct Paquete recibido;
   struct NIPC paqueteAMandar; 		
 
@@ -179,6 +179,7 @@ int mandarMensaje(char * mensaje,int tipoMensaje,int socket)
   paqueteAMandar.Length = strlen(mensaje);
   paqueteAMandar.Payload = mensaje;
   recibido = Serializar(paqueteAMandar);
+
   if(send(socket,recibido.Serializado , recibido.Length , 0)== -1) 
   {	  
     return ERROR_SEND;
@@ -186,4 +187,3 @@ int mandarMensaje(char * mensaje,int tipoMensaje,int socket)
  
   return SUCCESS;
 }
-*/
