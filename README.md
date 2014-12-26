@@ -5,4 +5,4 @@ A library to manage AF_INET sockets.
 
 ###License
 
-This library is distributed under the BSD-2-Clause license (otherwise known as *The FreeBSD license*). The text for that license can be found on the OSI website ( opensource.org/licenses/BSD-2-Clause).
+This library is distributed under the terms of the 2-Clause BSD License, also known as *The FreeBSD License*. See LICENSE file for details. 
