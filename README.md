@@ -1,7 +1,7 @@
 Libsockets
 ==========
 
-A library to manage AF_INET sockets. 
+A C library to manage AF_INET sockets in Linux.
 
 ###License
 
