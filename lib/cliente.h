@@ -8,6 +8,5 @@
 #include <string.h>
 
 int inicializar_cliente(char * ip, int puerto);
-int esperarDatos(int socket, struct NIPC * datos);
+int esperar_datos(int socket, struct NIPCBin * datos);
 void cerrar_cliente(int socket);
-

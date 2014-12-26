@@ -23,43 +23,7 @@ int inicializar_cliente(char * ip, int puerto)
    return socketDestino;
 }
 
-int esperarDatos(int socket, struct NIPC * datos)
-{
-
-  int nbytesRecibidos;
-  int status; 
-  char buffer[BUFFSIZE];
-  char * orden;
-  struct Paquete recibido;
-
-  nbytesRecibidos = recv(socket, buffer, BUFFSIZE, 0);
-   
-  if (nbytesRecibidos > 0)
-  {
-
-    orden = malloc(nbytesRecibidos+1);
-    memcpy (orden,buffer,nbytesRecibidos);
-    orden[nbytesRecibidos] = '\0';
-    recibido.Serializado = orden;
-    recibido.Length = nbytesRecibidos;
-
-    *datos = Deserializar(recibido.Serializado);
-
-    free(orden);       
-
-    status = SUCCESS;    
-
-  } 
-  else
-  {
-    // Error.
-    status = nbytesRecibidos == 0 ? ERROR_DESC : ERROR_RECV;
-  }
-
-  return status;
-}
-
-int esperarDatosBinario(int socket, struct NIPCBin * datos)
+int esperar_datos(int socket, struct NIPCBin * datos)
 {
 
   int nbytesRecibidos;

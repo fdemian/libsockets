@@ -30,11 +30,9 @@ int main(void)
   struct NIPCBin datos;
   char * respuesta = NULL; 
   
-  socketDescriptor = inicializar_cliente(LOCALHOST, PUERTO);
-  
-  mandarMensajeBinario(mensaje, tipoMensaje, strlen(mensaje), socketDescriptor);
-  
-  esperarDatosBinario(socketDescriptor, &datos);
+  socketDescriptor = inicializar_cliente(LOCALHOST, PUERTO);  
+  mandarMensajeBinario(mensaje, tipoMensaje, strlen(mensaje), socketDescriptor);  
+  esperar_datos(socketDescriptor, &datos);
 
   respuesta = (char *) datos.Payload;
 

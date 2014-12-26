@@ -45,6 +45,6 @@ void actionServer(struct NIPCBin datos, int socket, int * matarServidor)
 int manejarDesconexionServidor(int socketCliente)
 {
   printf("El cliente en el socket %d se desconecto.\n", socketCliente); 
-	
+  	
   return 0; 
 }
