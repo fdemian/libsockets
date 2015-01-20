@@ -1,3 +1,5 @@
+#include <sys/select.h> 
+
 /*
  * Starts a server in the specified port. 
  * 
