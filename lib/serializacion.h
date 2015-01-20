@@ -2,30 +2,15 @@ struct NIPC
 {
   unsigned char Type;
   unsigned short int Length;
-  char* Payload;
+  void * Payload;
 };
 
-struct NIPCBin
+
+struct package
 {
-  unsigned char Type;
-  unsigned short int Length;
-  void* Payload;
+  void * data;
+  int length;
 };
 
-struct Paquete
-{
-  char* Serializado;
-  int Length;
-};
-
-struct PaqueteBinario
-{
-  void * Serializado;
-  int Length;
-};
-
-
-struct Paquete Serializar(struct NIPC paqueteAserializar);
-struct PaqueteBinario SerializarBinario(struct NIPCBin paqueteAserializar);
-struct NIPC Deserializar(char* mensajeSerializado);
-struct NIPCBin DeserializarBinario(void * mensajeSerializado);
+struct package serializePackage(struct NIPC messageToSerialize);
+struct NIPC unserializePackage(void * serializedPackage);

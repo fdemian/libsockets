@@ -1,29 +1,169 @@
 #include "servidor.h"
 
-// Inicia el servidor con los parametros especificados.
-int inicializar_servidor(fd_set * master, fd_set * read_fds, int * listener, int * fdmax,int max_conexiones, int puerto)
-{
+/*
+ * Static functions / Private API. 
+ */ 
+static int initializeServer(fd_set * master, fd_set * read_fds, int * listener, int * fdmax, int max_conexiones, int puerto);
+static int handleConnection(struct sockaddr_in * remoteaddr,int listener, int * fdmax, fd_set * master);
+static int handleClientDataRecieved(int cliente, fd_set * master, int fdmax, int listener, struct NIPC * datos, int (*manejadorDeDesconexion)(int cliente), int * killServer);
 
+void 
+startServer(void (*dataHandler)(struct NIPC datos, int socket, int * cerrarServidor), int puerto, int maxConecciones,int (*disconnectionHandler)(int cliente))
+{  
+	
+  struct sockaddr_in remoteaddr;	
+  int connectionIndex = 0;
+  int recieveStatus = 0;
+  struct NIPC recievedData;			  
+
+  int killServer = 0;
+  int * listener = malloc(sizeof(int));
+  int * fdmax = malloc(sizeof(int));
+  fd_set * master = malloc(sizeof(fd_set));
+  fd_set * read_fds = malloc(sizeof(fd_set));  
+  
+  recievedData.Length = 0;
+  recievedData.Payload = NULL;
+  recievedData.Type = 0;
+      
+  initializeServer(master, read_fds, listener, fdmax, maxConecciones, puerto);    
+ 
+  while(!killServer)
+  {	  
+    *read_fds = *master;
+    
+    if (select(*fdmax + 1, read_fds, NULL, NULL, NULL) != -1)
+    {
+      for (connectionIndex = 0; connectionIndex <= *fdmax; connectionIndex++)
+      {
+      
+        if (FD_ISSET(connectionIndex, read_fds))
+        {
+          if (connectionIndex == *listener) 
+          {
+            handleConnection(&remoteaddr, *listener, fdmax, master);
+          }
+          else
+          {					
+            recieveStatus = handleClientDataRecieved(connectionIndex, master,*fdmax, *listener, &recievedData, disconnectionHandler, &killServer);
+          
+            if(recieveStatus != ERROR_RECEIVE_SERV)
+            {
+              dataHandler(recievedData, connectionIndex, &killServer);
+            }
+          }
+        }
+      }
+    }
+    else
+    {
+	   killServer = 1; 	
+    }
+    
+  }
+    
+  // Close the listening socket's connection and clear master and temporary sets. 
+  close(*listener); 
+  FD_ZERO(master); 
+  FD_ZERO(read_fds);
+
+  // Deallocate memmory. 
+  free(listener);
+  free(fdmax);
+  free(master);
+  free(read_fds);
+
+}
+
+
+/* ------------------------- Private functions ------------------------- */
+
+static int 
+handleConnection(struct sockaddr_in * remoteaddr, int listener, int * fdmax, fd_set * master)
+{   
+  int addrlen = sizeof(*remoteaddr);
+  int newfd;
+  
+  newfd = accept(listener,(struct sockaddr*) remoteaddr, (socklen_t *) &addrlen);
+  
+  if(newfd == -1) 
+  {
+    return ERROR_ACCEPT;  
+  }
+  else 
+  {
+    FD_SET(newfd, master);
+    
+    if (newfd > *fdmax)
+    {
+      *fdmax = newfd;      
+    }
+    
+    return SUCCESS; 
+  }
+}
+
+
+static int 
+handleClientDataRecieved(int cliente, fd_set * master, int fdmax, int listener, struct NIPC * datos, int (*disconnectionHandler)(int cliente), int * killServer)
+{
+  
+  int bytesRecieved;  
+  void * buffer = malloc(BUFFSIZE);
+  void * tempBuffer = NULL;
+  struct package dataRecieved; 
+  
+  bytesRecieved = recv(cliente, buffer, BUFFSIZE, 0);    
+      
+  if(bytesRecieved > 0) 
+  {
+           
+    tempBuffer = malloc(bytesRecieved);
+    memcpy(tempBuffer, buffer, bytesRecieved);
+    
+    dataRecieved.data = tempBuffer;
+    dataRecieved.length = bytesRecieved;
+    *datos = unserializePackage(dataRecieved.data); 
+    free(tempBuffer);          	
+  }
+  else 
+  { 
+    if(disconnectionHandler(cliente) == -1)
+    {
+      *killServer = 1;  	
+    }
+    
+    close(cliente);
+    FD_CLR(cliente, master);
+    
+    return ERROR_RECEIVE_SERV;
+  }
+  
+  return SUCCESS;  
+}
+
+
+static int 
+initializeServer(fd_set * master, fd_set * read_fds, int * listener, int * fdmax, int max_conexiones, int puerto)
+{
+  
   struct sockaddr_in selfAddress;	
   int yes = 1;
-			
-  // Borra los conjuntos maestro y temporal						
+  
+  // Clear master and temporary sets. 
   FD_ZERO(master); 
   FD_ZERO(read_fds); 
-		
-  // Obtener socket a la escucha
+  	
   if ((*listener = socket(AF_INET, SOCK_STREAM, 0)) == -1)
   {
     return ERROR_SOCKET;		
   }
-  	
-  // Obviar el mensaje "address already in use" (la direccion ya se esta usando)
+  
   if (setsockopt(*listener, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int))== -1)
   {
     return ADDR_IN_USE;
   }
-
-  // Enlazar
+  
   selfAddress.sin_family = AF_INET;
   selfAddress.sin_addr.s_addr = INADDR_ANY;
   selfAddress.sin_port = htons(puerto);
@@ -34,141 +174,16 @@ int inicializar_servidor(fd_set * master, fd_set * read_fds, int * listener, int
     return ERROR_BIND;
   }
 
-  // Escuchar	
   if (listen(*listener, max_conexiones) == -1) 
   {
     return ERROR_LISTEN;
   }
 	
-  // Agregar listener al conjunto maestro.
+  // Add listener to master set. 
   FD_SET(*listener, master);
 
-  // Seguir la pista del descriptor de fichero mayor
+  // Keep track of the greatest file descriptor. 
   *fdmax = *listener;
-	
+  
   return SUCCESS;
-}
-
-// Ejecuta la logica del servidor, iterando infinitamente.
-void servidor(void (*manejadorDeDatos)(struct NIPCBin datos, int socket, int * cerrarServidor), int puerto, int maxConecciones,int (*manejadorDeDesconexion)(int cliente))
-{  
-	
-  struct sockaddr_in remoteaddr;	
-  int connectionIndex = 0;
-  int estadoDatosCliente;
-  struct NIPCBin datosRecibidos;			  
-
-  int killServer = 0;
-  int * listener = malloc(sizeof(int));
-  int * fdmax = malloc(sizeof(int));
-  fd_set * master = malloc(sizeof(fd_set));
-  fd_set * read_fds = malloc(sizeof(fd_set));  
-  datosRecibidos.Length = 0;
-  datosRecibidos.Payload = NULL;
-  datosRecibidos.Type = 0;
-      
-  inicializar_servidor(master, read_fds, listener, fdmax, maxConecciones, puerto);    
- 
-  while(!killServer)
-  {	  
-    *read_fds = *master; // Copiar conjunto maestro.
-    if (select(*fdmax + 1, read_fds, NULL, NULL, NULL) == -1)
-    {
-      puts("error en el select"); 
-      perror(" error en el select");
-      break;
-    }
-        
-    // explorar conexiones existentes en busca de datos que leer
-    for (connectionIndex = 0; connectionIndex <= *fdmax; connectionIndex++)
-    {
-      if (FD_ISSET(connectionIndex, read_fds)) //tenemos datos!!
-      {
-        if (connectionIndex == *listener) 
-        {
-          // Handle new connections!
-          handleConnection(&remoteaddr, *listener, fdmax, master);
-        }
-        else
-        {					
-          estadoDatosCliente = handleClientDataRecieved(connectionIndex, master,*fdmax, *listener, &datosRecibidos, manejadorDeDesconexion, &killServer); 						
-          if(estadoDatosCliente != ERROR_RECEIVE_SERV)
-          {
-            manejadorDeDatos(datosRecibidos, connectionIndex, &killServer);
-            //free(datosRecibidos.Payload);
-          }
-        }
-      }
-    }
-  }
-    
-  // Cerrar la conexion en el socket de escucha (del servidor) y borrar los conjuntos maestro y temporal.
-  close(*listener); 
-  FD_ZERO(master); 
-  FD_ZERO(read_fds);
-
-  // Liberar los datos allocados. 
-  free(listener);
-  free(fdmax);
-  free(master);
-  free(read_fds);
-
-}
-
-// Gestionar nuevas conexiones
-void handleConnection(struct sockaddr_in * remoteaddr,int listener, int * fdmax, fd_set * master)
-{   
-  int addrlen = sizeof(*remoteaddr);
-  int newfd; // descriptor de socket de nueva conexión aceptada
-  
-  if ((newfd = accept(listener,(struct sockaddr*) remoteaddr, (socklen_t *) &addrlen)) == -1) 
-  {
-	  perror("accept");
-  }
-  else 
-  {
-    FD_SET(newfd, master); // Agregar descriptor al conjunto maestro.
-    if (newfd > *fdmax)
-    {
-      // Actualizar el maximo.
-      *fdmax = newfd;
-    }
-  }  
-}
-
-// Gestionar datos de un cliente
-int handleClientDataRecieved(int cliente, fd_set * master, int fdmax, int listener, struct NIPCBin * datos, int (*manejadorDeDesconexion)(int cliente), int * killServer)
-{
-
-  int nbytes;  
-  void * buffer = malloc(BUFFSIZE); // buffer para datos del cliente	        
-  void * orden = NULL;
-  struct PaqueteBinario paqueteRecibido;     
-      
-  if((nbytes = recv(cliente, buffer, BUFFSIZE, 0)) > 0) 
-  {
-	// Tenemos datos del cliente.           
-    orden = malloc(nbytes);
-    memcpy(orden,buffer,nbytes);
-    //orden[nbytes] = '\0';    
-    paqueteRecibido.Serializado = orden;
-    paqueteRecibido.Length = nbytes;
-    *datos = DeserializarBinario(paqueteRecibido.Serializado); 
-    free(orden);          	
-  }
-  else 
-  { 
-    // Error o conexion cerrada por el cliente.
-    if(manejadorDeDesconexion(cliente) == -1)
-    {
-      *killServer = 1;  	
-    }
-    
-    close(cliente);
-    FD_CLR(cliente, master); // Eliminar del conjunto maestro 
-    
-    return ERROR_RECEIVE_SERV;
-  }
-  
-  return SUCCESS;  
 }

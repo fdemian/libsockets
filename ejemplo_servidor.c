@@ -20,18 +20,18 @@
 #define MAX_CONEXIONES 10
 #define LOCALHOST "127.0.0.1"
 
-void actionServer(struct NIPCBin datos, int socket, int * matarServidor);
+void actionServer(struct NIPC datos, int socket, int * matarServidor);
 int manejarDesconexionServidor(int socketCliente);
 
 int main(void)
 {
   
-  servidor(actionServer, PUERTO, MAX_CONEXIONES, manejarDesconexionServidor);
-  
+  startServer(actionServer, PUERTO, MAX_CONEXIONES, manejarDesconexionServidor);
+    
   return 0;
 }
 
-void actionServer(struct NIPCBin datos, int socket, int * matarServidor)
+void actionServer(struct NIPC datos, int socket, int * matarServidor)
 {
    char * mensajeRecibido = NULL;
    char * mensajeAEnviar = "Soy servidor."; 
@@ -39,7 +39,7 @@ void actionServer(struct NIPCBin datos, int socket, int * matarServidor)
    mensajeRecibido = (char *) datos.Payload; 
    
    printf("%d > %s\n", socket, mensajeRecibido);    
-   mandarMensajeBinario(mensajeAEnviar, 1, strlen(mensajeAEnviar), socket);
+   sendMessage(mensajeAEnviar, 1, strlen(mensajeAEnviar), socket);
 }
 
 int manejarDesconexionServidor(int socketCliente)

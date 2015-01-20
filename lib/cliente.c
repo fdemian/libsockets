@@ -1,64 +1,63 @@
 #include "cliente.h"
 
-int inicializar_cliente(char * ip, int puerto)
+int initializeClient(char * ip, int port)
 {  
   
-  int socketDestino;
+  int targetSocket;
   struct sockaddr_in socketInfo;
 
-  if ((socketDestino = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+  if ((targetSocket = socket(AF_INET, SOCK_STREAM, 0)) < 0)
   {
     return ERROR_CREATE;
   }
-
+  
   socketInfo.sin_family = AF_INET;
   socketInfo.sin_addr.s_addr = inet_addr(ip);
-  socketInfo.sin_port = htons(puerto);
-    
-  if (connect(socketDestino, (struct sockaddr*) &socketInfo, sizeof(socketInfo))!= 0) 
+  socketInfo.sin_port = htons(port);
+     
+  if (connect(targetSocket, (struct sockaddr*) &socketInfo, sizeof(socketInfo))!= 0) 
   {
      return ERROR_CONNECT;
   }  
   
-   return socketDestino;
+  return targetSocket;
 }
 
-int esperar_datos(int socket, struct NIPCBin * datos)
-{
 
-  int nbytesRecibidos;
+int recieveData(int socket, struct NIPC * data)
+{
+  
+  int bytesRecieved;
   int status;
   void * buffer = malloc(BUFFSIZE);
-  void * orden;
-  struct Paquete recibido;
+  void * tempBuffer = NULL;
+  struct package dataRecieved;
 
-  nbytesRecibidos = recv(socket, buffer, BUFFSIZE, 0);
+  bytesRecieved = recv(socket, buffer, BUFFSIZE, 0);
 
-  if (nbytesRecibidos > 0)
+  if (bytesRecieved > 0)
   {
 
-    orden = malloc(nbytesRecibidos);
-    memcpy (orden,buffer,nbytesRecibidos);
-    recibido.Serializado = orden;
-    recibido.Length = nbytesRecibidos;
+    tempBuffer = malloc(bytesRecieved);
+    memcpy(tempBuffer, buffer, bytesRecieved);
+    
+    dataRecieved.data = tempBuffer;
+    dataRecieved.length = bytesRecieved;
 
-    *datos = DeserializarBinario(recibido.Serializado);
+    *data = unserializePackage(dataRecieved.data);
 
-    free(orden);
-
+    free(tempBuffer);    
     status = SUCCESS;
-
   }
   else
   {
-    // Error.
-    status = nbytesRecibidos == 0 ? ERROR_DESC : ERROR_RECV;
+    status = bytesRecieved == 0 ? ERROR_DESC : ERROR_RECV;
   }
 
   return status;
 }
 
-void cerrar_cliente(int socket)
+void closeClient(int socket)
 {
   close(socket);  
 }

@@ -19,7 +19,6 @@
 
 #define PUERTO 3490
 #define MAX_CONEXIONES 10
-#define LOCALHOST "127.0.0.1"
 
 int main(void)
 {
@@ -27,18 +26,19 @@ int main(void)
   char * mensaje = "Soy cliente.";
   int tipoMensaje = 1;
 
-  struct NIPCBin datos;
+  struct NIPC datos;
   char * respuesta = NULL; 
   
-  socketDescriptor = inicializar_cliente(LOCALHOST, PUERTO);  
-  mandarMensajeBinario(mensaje, tipoMensaje, strlen(mensaje), socketDescriptor);  
-  esperar_datos(socketDescriptor, &datos);
+  socketDescriptor = initializeClient(LOCALHOST, PUERTO);  
+  sendMessage(mensaje, tipoMensaje, strlen(mensaje), socketDescriptor);  
+  recieveData(socketDescriptor, &datos);
 
   respuesta = (char *) datos.Payload;
 
   printf("%s\n", respuesta);
   
   free(datos.Payload);
+  closeClient(socketDescriptor); 
   
   return SUCCESS;
 }

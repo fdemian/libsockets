@@ -1,90 +1,56 @@
 #include "serializacion.h"
 
-struct Paquete Serializar(struct NIPC paqueteAserializar)
+/*
+ * Serialize a NIPC structure into a package that has the following structure. 
+ * 
+ * 0 - Type - 0 - Payload Length - 0 - Payload.
+ * 
+ */
+struct package serializePackage(struct NIPC messageToSerialize)
 {
 
-  struct Paquete mensajeSerializado;
-  __int32_t tamanoPaquete = 0;
-  char * str;
-
-  tamanoPaquete = sizeof(char) + sizeof(char) + sizeof(char) + sizeof(unsigned short int)+ sizeof(char) + paqueteAserializar.Length;
-  mensajeSerializado.Length = tamanoPaquete;
-  mensajeSerializado.Serializado = malloc(sizeof(char) * mensajeSerializado.Length);
-
-  memset(mensajeSerializado.Serializado, 0, 1); // Copio el primer 0 de control.
-  memcpy(mensajeSerializado.Serializado+1, &(paqueteAserializar.Type), 1); // Copio el tipo.
-  memset(mensajeSerializado.Serializado+1+sizeof(paqueteAserializar.Type), 0, 1); // Copio el segundo 0 de control.
-  memcpy(mensajeSerializado.Serializado+2+sizeof(paqueteAserializar.Type), &(paqueteAserializar.Length), 2); // Copio la longitud del Payload.
-  memset(mensajeSerializado.Serializado+2+sizeof(paqueteAserializar.Type)+sizeof(paqueteAserializar.Length), 0, 1); // Copio el tercer 0 de control.
-
-  // Copio el payload.
-  if(paqueteAserializar.Length > 0)
-  {
-    str = mensajeSerializado.Serializado + 3 + sizeof(paqueteAserializar.Type) + sizeof(paqueteAserializar.Length);
-    memcpy(str, paqueteAserializar.Payload, paqueteAserializar.Length); 
-  }
-
-  return mensajeSerializado;
-}
-
-
-struct PaqueteBinario SerializarBinario(struct NIPCBin paqueteAserializar)
-{
-
-  struct PaqueteBinario mensajeSerializado;
-  __int32_t tamanoPaquete = 0;
+  struct package serializedPackage;
+  __int32_t packageSize = 0;
   void * str;
     
-  tamanoPaquete = sizeof(char) + sizeof(char) + sizeof(char) + sizeof(unsigned short int)+ sizeof(char) + paqueteAserializar.Length;
-  mensajeSerializado.Length = tamanoPaquete;
-  mensajeSerializado.Serializado = malloc(sizeof(char) * mensajeSerializado.Length);
+  packageSize = sizeof(char) + sizeof(char) + sizeof(char) + sizeof(unsigned short int)+ sizeof(char) + messageToSerialize.Length;
+  serializedPackage.length = packageSize;
+  serializedPackage.data = malloc(sizeof(char) * packageSize);
 
-  memset(mensajeSerializado.Serializado, 0, 1); // Copio el primer 0 de control.
-  memcpy(mensajeSerializado.Serializado+1, &(paqueteAserializar.Type), 1); // Copio el tipo.
-  memset(mensajeSerializado.Serializado+1+sizeof(paqueteAserializar.Type), 0, 1); // Copio el segundo 0 de control.
-  memcpy(mensajeSerializado.Serializado+2+sizeof(paqueteAserializar.Type), &(paqueteAserializar.Length), 2); // Copio la longitud del Payload.
-  memset(mensajeSerializado.Serializado+2+sizeof(paqueteAserializar.Type)+sizeof(paqueteAserializar.Length), 0, 1); // Copio el tercer 0 de control.
-
-  // Copio el payload.
-  if(paqueteAserializar.Length > 0)
+  memset(serializedPackage.data, 0, 1);
+  memcpy(serializedPackage.data+1, &(messageToSerialize.Type), 1);
+  memset(serializedPackage.data+1+sizeof(messageToSerialize.Type), 0, 1);
+  memcpy(serializedPackage.data+2+sizeof(messageToSerialize.Type), &(messageToSerialize.Length), 2);
+  memset(serializedPackage.data+2+sizeof(messageToSerialize.Type)+sizeof(messageToSerialize.Length), 0, 1);
+  
+  if(messageToSerialize.Length > 0)
   {
-    str = mensajeSerializado.Serializado + 3 + sizeof(paqueteAserializar.Type) + sizeof(paqueteAserializar.Length);
-    memcpy(str, paqueteAserializar.Payload, paqueteAserializar.Length); 
+    str = serializedPackage.data + 3 + sizeof(messageToSerialize.Type) + sizeof(messageToSerialize.Length);
+    memcpy(str, messageToSerialize.Payload, messageToSerialize.Length); 
   }
   
-  return mensajeSerializado;
+  return serializedPackage;
 }
 
 
-struct NIPC Deserializar(char* mensajeSerializado)
+/*
+ * Unserialize a package that has the following structure: 
+ * 0 - Type - 0 - Payload Length - 0 - Payload.
+ * 
+ * The function returns a NIPC structure.  
+ */
+struct NIPC unserializePackage(void * serializedPackage)
 {
-  struct NIPC mensajeDeserializado;
+  struct NIPC unserializedMessage;
 
-  memcpy(&(mensajeDeserializado.Type), mensajeSerializado+1, 1);
-  memcpy(&(mensajeDeserializado.Length),mensajeSerializado+3, sizeof(mensajeDeserializado.Length));
+  memcpy(&(unserializedMessage.Type), serializedPackage+1, 1);
+  memcpy(&(unserializedMessage.Length),serializedPackage+3, sizeof(unserializedMessage.Length));
 
-  if (mensajeDeserializado.Length>0)
+  if (unserializedMessage.Length > 0)
   {
-    mensajeDeserializado.Payload = calloc(1, mensajeDeserializado.Length + 1);
-    strncpy( mensajeDeserializado.Payload, mensajeSerializado + 6, mensajeDeserializado.Length );
+    unserializedMessage.Payload = calloc(1, unserializedMessage.Length + 1);
+    memcpy(unserializedMessage.Payload, serializedPackage + 6, unserializedMessage.Length);
   }
 
-  return mensajeDeserializado;
-}
-
-
-struct NIPCBin DeserializarBinario(void * mensajeSerializado)
-{
-  struct NIPCBin mensajeDeserializado;
-
-  memcpy(&(mensajeDeserializado.Type), mensajeSerializado+1, 1);
-  memcpy(&(mensajeDeserializado.Length),mensajeSerializado+3, sizeof(mensajeDeserializado.Length));
-
-  if (mensajeDeserializado.Length>0)
-  {
-    mensajeDeserializado.Payload = calloc(1, mensajeDeserializado.Length + 1);
-    memcpy(mensajeDeserializado.Payload, mensajeSerializado + 6, mensajeDeserializado.Length);
-  }
-
-  return mensajeDeserializado;
+  return unserializedMessage;
 }
