@@ -4,11 +4,11 @@
 FLAGS = -Werror -Wall -g -ggdb
 
 # Programas a compilar.
-SEVER_SOURCE = ejemplo_servidor.c 
-SEVER_NAME = serv
+SEVER_SOURCE = example1_server.c 
+SEVER_NAME = serv1
 
-CLIENT_SOURCE = ejemplo_cliente.c 
-CLIENT_NAME = cli
+CLIENT_SOURCE = example1_client.c 
+CLIENT_NAME = cli1
 
 # Agregar las dependencias de compilacion aca.
 #DEPENDS = 
