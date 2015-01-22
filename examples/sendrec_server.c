@@ -1,5 +1,5 @@
-#include "lib/server.c"
-#include "lib/commons.c"
+#include "../lib/server.c"
+#include "../lib/commons.c"
 
 #define PORT 3490
 #define MAX_CONNECTIONS 10

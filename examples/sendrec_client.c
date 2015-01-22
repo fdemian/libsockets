@@ -1,5 +1,5 @@
-#include "lib/client.c"
-#include "lib/commons.c"
+#include "../lib/client.c"
+#include "../lib/commons.c"
 
 #define PORT 3490
 
