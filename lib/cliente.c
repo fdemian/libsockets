@@ -23,41 +23,35 @@ int initializeClient(char * ip, int port)
   return targetSocket;
 }
 
-
-int recieveData(int socket, struct NIPC * data)
+int recieveData(int socket, struct package * dataRecieved)
 {
   
   int bytesRecieved;
   int status;
   void * buffer = malloc(BUFFSIZE);
-  void * tempBuffer = NULL;
-  struct package dataRecieved;
-
+  
   bytesRecieved = recv(socket, buffer, BUFFSIZE, 0);
-
+  
   if (bytesRecieved > 0)
   {
-
-    tempBuffer = malloc(bytesRecieved);
-    memcpy(tempBuffer, buffer, bytesRecieved);
     
-    dataRecieved.data = tempBuffer;
-    dataRecieved.length = bytesRecieved;
-
-    *data = unserializePackage(dataRecieved.data);
-
-    free(tempBuffer);    
+    dataRecieved->data = malloc(bytesRecieved);
+    memcpy((dataRecieved->data), buffer, bytesRecieved);
+    dataRecieved->length = bytesRecieved;    
+    
     status = SUCCESS;
   }
   else
   {
     status = bytesRecieved == 0 ? ERROR_DESC : ERROR_RECV;
   }
-
+  
+  free(buffer);
+    
   return status;
 }
 
 void closeClient(int socket)
 {
-  close(socket);  
+  close(socket);
 }

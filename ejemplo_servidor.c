@@ -7,7 +7,7 @@
 #define MAX_CONEXIONES 10
 #define LOCALHOST "127.0.0.1"
 
-void actionServer(struct NIPC datos, int socket, int * matarServidor);
+void actionServer(struct package * datosRecibidos, int socket, int * matarServidor);
 int manejarDesconexionServidor(int socketCliente);
 
 int main(void)
@@ -18,15 +18,26 @@ int main(void)
   return 0;
 }
 
-void actionServer(struct NIPC datos, int socket, int * matarServidor)
+void actionServer(struct package * datosRecibidos, int socket, int * matarServidor)
 {
    char * mensajeRecibido = NULL;
-   char * mensajeAEnviar = "Soy servidor."; 
+   char * mensajeAEnviar = "Soy servidor.";    
+   struct package packageToSend;
+   struct NIPC dataToSerialize; 
+   struct NIPC datosDesserializados; 
+      
+   datosDesserializados = unserializePackage(datosRecibidos->data); 
    
-   mensajeRecibido = (char *) datos.Payload; 
+   mensajeRecibido = (char *) datosDesserializados.Payload;    
+   printf("%d > %s\n", socket, mensajeRecibido);  
    
-   printf("%d > %s\n", socket, mensajeRecibido);    
-   sendMessage(mensajeAEnviar, 1, strlen(mensajeAEnviar), socket);
+   dataToSerialize.Type = 1;
+   dataToSerialize.Length = strlen(mensajeAEnviar);
+   dataToSerialize.Payload = (void *) mensajeAEnviar;
+   
+   packageToSend = serializePackage(dataToSerialize);
+       
+   sendMessage(packageToSend, socket);
 }
 
 int manejarDesconexionServidor(int socketCliente)

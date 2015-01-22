@@ -1,3 +1,7 @@
+#ifndef _LSOCKETS_H_
+
+#define _LSOCKETS_H_
+
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -9,7 +13,6 @@
 
 #include <netinet/in.h>
 #include <arpa/inet.h>
-
 
 #define BUFFSIZE 1024
 #define LOCALHOST "127.0.0.1"
@@ -34,7 +37,15 @@
 
 #define SUCCESS 0
 
+struct package
+{
+  void * data;
+  int length;
+};
+
 /*
  * Sends a message to a given socket. 
  */
-int sendMessage(void * mensaje, int tipoMensaje, int largo, int socket);
+int sendMessage(struct package dataToSend, int socket);
+
+#endif

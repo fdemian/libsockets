@@ -9,6 +9,6 @@
  * manejadorDeDesconexion: a function that gets called whenever a socket is disconnected.  
  * 
  */
-void startServer(void (*dataHandler)(struct NIPC datos, 
-              int socket, int * cerrarServidor), int puerto, int maxConecciones,
-              int (*disconnectionHandler)(int cliente));
+void startServer(void (*dataHandler)(struct package * datos, 
+              int socket, int * killServer), int puerto, int maxConnections,
+              int (*disconnectionHandler)(int disconnectedSocket));

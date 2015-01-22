@@ -1,7 +1,7 @@
 
 # Flags de compilacion.
 # Convierte todos los warnings en errores.
-FLAGS = -Werror -Wall 
+FLAGS = -Werror -Wall -g -ggdb
 
 # Programas a compilar.
 SEVER_SOURCE = ejemplo_servidor.c 

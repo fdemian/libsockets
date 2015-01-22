@@ -1,4 +1,3 @@
-#include "lib/sockets.h"
 #include "lib/serializacion.c"
 #include "lib/cliente.c"
 #include "lib/comunes.c"
@@ -8,22 +7,37 @@
 
 int main(void)
 {
-  int socketDescriptor; 
-  char * mensaje = "Soy cliente.";
-  int tipoMensaje = 1;
-
-  struct NIPC datos;
-  char * respuesta = NULL; 
   
-  socketDescriptor = initializeClient(LOCALHOST, PUERTO);  
-  sendMessage(mensaje, tipoMensaje, strlen(mensaje), socketDescriptor);  
-  recieveData(socketDescriptor, &datos);
-
-  respuesta = (char *) datos.Payload;
-
+  int socketDescriptor; 
+  
+  char * mensaje = "Soy cliente.\0";
+  char * respuesta = NULL; 
+  struct package * dataRecieved = malloc(sizeof(struct package));  
+  struct package packageToSend;
+  
+  struct NIPC datosRecibidos;
+  struct NIPC dataToSerialize;
+    
+  dataToSerialize.Type = 1;
+  dataToSerialize.Length = strlen(mensaje);
+  dataToSerialize.Payload = (void *) mensaje;
+  packageToSend = serializePackage(dataToSerialize);
+  
+  socketDescriptor = initializeClient(LOCALHOST, PUERTO);    
+  sendMessage(packageToSend, socketDescriptor);  
+  recieveData(socketDescriptor, dataRecieved);
+  datosRecibidos = unserializePackage(dataRecieved->data);  
+  
+  respuesta = (char *) datosRecibidos.Payload;
+   
   printf("%s\n", respuesta);
   
-  free(datos.Payload);
+  // free memory.
+  free(datosRecibidos.Payload);
+  free(packageToSend.data);
+  free(dataRecieved->data);
+  free(dataRecieved);
+  
   closeClient(socketDescriptor); 
   
   return SUCCESS;

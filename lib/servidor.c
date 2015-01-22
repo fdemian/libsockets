@@ -5,28 +5,25 @@
  */ 
 static int initializeServer(fd_set * master, fd_set * read_fds, int * listener, int * fdmax, int max_conexiones, int puerto);
 static int handleConnection(struct sockaddr_in * remoteaddr,int listener, int * fdmax, fd_set * master);
-static int handleClientDataRecieved(int cliente, fd_set * master, int fdmax, int listener, struct NIPC * datos, int (*manejadorDeDesconexion)(int cliente), int * killServer);
+static int handleClientDataRecieved(int cliente, fd_set * master, int fdmax, int listener, struct package * dataRecieved, int (*disconnectionHandler)(int cliente), int * killServer);
 
 void 
-startServer(void (*dataHandler)(struct NIPC datos, int socket, int * cerrarServidor), int puerto, int maxConecciones,int (*disconnectionHandler)(int cliente))
+startServer(void (*dataHandler)(struct package * data, int socket, int * killServer), int port, int maxConnections,int (*disconnectionHandler)(int disconnectedSocket))
 {  
 	
   struct sockaddr_in remoteaddr;	
   int connectionIndex = 0;
   int recieveStatus = 0;
-  struct NIPC recievedData;			  
-
+  
   int killServer = 0;
   int * listener = malloc(sizeof(int));
   int * fdmax = malloc(sizeof(int));
   fd_set * master = malloc(sizeof(fd_set));
   fd_set * read_fds = malloc(sizeof(fd_set));  
   
-  recievedData.Length = 0;
-  recievedData.Payload = NULL;
-  recievedData.Type = 0;
-      
-  initializeServer(master, read_fds, listener, fdmax, maxConecciones, puerto);    
+  struct package * recievedData = malloc(sizeof(struct package)); 
+  
+  initializeServer(master, read_fds, listener, fdmax, maxConnections, port);    
  
   while(!killServer)
   {	  
@@ -45,7 +42,7 @@ startServer(void (*dataHandler)(struct NIPC datos, int socket, int * cerrarServi
           }
           else
           {					
-            recieveStatus = handleClientDataRecieved(connectionIndex, master,*fdmax, *listener, &recievedData, disconnectionHandler, &killServer);
+            recieveStatus = handleClientDataRecieved(connectionIndex, master,*fdmax, *listener, recievedData, disconnectionHandler, &killServer);
           
             if(recieveStatus != ERROR_RECEIVE_SERV)
             {
@@ -105,26 +102,21 @@ handleConnection(struct sockaddr_in * remoteaddr, int listener, int * fdmax, fd_
 
 
 static int 
-handleClientDataRecieved(int cliente, fd_set * master, int fdmax, int listener, struct NIPC * datos, int (*disconnectionHandler)(int cliente), int * killServer)
+handleClientDataRecieved(int cliente, fd_set * master, int fdmax, int listener, struct package * dataRecieved, int (*disconnectionHandler)(int cliente), int * killServer)
 {
   
   int bytesRecieved;  
   void * buffer = malloc(BUFFSIZE);
-  void * tempBuffer = NULL;
-  struct package dataRecieved; 
   
   bytesRecieved = recv(cliente, buffer, BUFFSIZE, 0);    
       
   if(bytesRecieved > 0) 
   {
-           
-    tempBuffer = malloc(bytesRecieved);
-    memcpy(tempBuffer, buffer, bytesRecieved);
     
-    dataRecieved.data = tempBuffer;
-    dataRecieved.length = bytesRecieved;
-    *datos = unserializePackage(dataRecieved.data); 
-    free(tempBuffer);          	
+    dataRecieved->data = malloc(bytesRecieved);   
+    memcpy(dataRecieved->data, buffer, bytesRecieved);
+    dataRecieved->length = bytesRecieved;  
+                          
   }
   else 
   { 
