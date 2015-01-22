@@ -1,6 +1,6 @@
 #include "lib/NIPC.c"
-#include "lib/cliente.c"
-#include "lib/comunes.c"
+#include "lib/client.c"
+#include "lib/commons.c"
 
 #define PORT 3490
 
@@ -31,7 +31,7 @@ int main(void)
   recieveData(socketDescriptor, dataRecieved);
   unserializedDataRecieved = NIPC_unserialize(dataRecieved->data);  
   
-  answer = (char *) datosRecibidos.Payload;
+  answer = (char *) unserializedDataRecieved.Payload;
    
   printf("%s\n", answer);
   
