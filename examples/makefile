@@ -1,41 +1,37 @@
-
-# Flags de compilacion.
-# Convierte todos los warnings en errores.
 FLAGS = -Werror -Wall -g -ggdb
 
-# Programas a compilar.
-SEVER_SOURCE = example1_server.c 
-SEVER_NAME = serv1
+SEVER_SOURCE = sendRecieve_server.c 
+SEVER_NAME = simpleServer
 
-CLIENT_SOURCE = example1_client.c 
-CLIENT_NAME = cli1
+CLIENT_SOURCE = sendRecieve_client.c 
+CLIENT_NAME = simpleClient
 
-SENDREC_SERVER_SOURCE = sendrec_server.c
-SENDREC_SERVER_NAME = serv2
+SERIALIZED_SERVER_SOURCE = sendRecieveSerialized_server.c
+SERIALIZED_SERVER_NAME   = serializedServer
 
-SENDREC_CLIENT_SOURCE = sendrec_client.c
-SENDREC_CLIENT_NAME = cli2
+SERIALIZED_CLIENT_SOURCE = sendRecieveSerialized_client.c
+SERIALIZED_CLIENT_NAME   = serializedClient
 
+all:	simple_client simple_server serialized_client serialized_server
 
-# Agregar las dependencias de compilacion aca.
-#DEPENDS = 
+simple_example:	simple_client simple_server
 
-all:	example_client example_server sendrec_client sendrec_server
+serializaton_example: serialized_client serialized_server
 
-example_client:
+simple_client:
 	$(CC) $(FLAGS) $(CLIENT_SOURCE) -o $(CLIENT_NAME)
 
-example_server: 
+simple_server: 
 	$(CC) $(FLAGS) $(SEVER_SOURCE) -o $(SEVER_NAME)
 
-sendrec_client: 
+serialized_client: 
 	$(CC) $(FLAGS) $(SENDREC_CLIENT_SOURCE) -o $(SENDREC_CLIENT_NAME)
 
-sendrec_server:
+serialized_server:
 	$(CC) $(FLAGS) $(SENDREC_SERVER_SOURCE) -o $(SENDREC_SERVER_NAME)
 
 clean:
 	rm $(SEVER_NAME)
 	rm $(CLIENT_NAME)
-	rm $(SENDREC_SERVER_NAME)
-	rm $(SENDREC_CLIENT_NAME)
+	rm $(SERIALIZED_SERVER_NAME)
+	rm $(SERIALIZED_CLIENT_NAME)
