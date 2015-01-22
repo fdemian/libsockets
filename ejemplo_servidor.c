@@ -1,11 +1,9 @@
-#include "lib/sockets.h"
 #include "lib/NIPC.c"
 #include "lib/server.c"
 #include "lib/commons.c"
 
 #define PORT 3490
 #define MAX_CONNECTIONS 10
-#define LOCALHOST "127.0.0.1"
 
 void actionServer(struct package * datosRecibidos, int socket, int * matarServidor);
 int handleDisconnection(int clientSocket);
