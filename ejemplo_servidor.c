@@ -1,5 +1,5 @@
 #include "lib/sockets.h"
-#include "lib/serializacion.c"
+#include "lib/NIPC.c"
 #include "lib/servidor.c"
 #include "lib/comunes.c"
 
@@ -26,7 +26,7 @@ void actionServer(struct package * datosRecibidos, int socket, int * matarServid
    struct NIPC dataToSerialize; 
    struct NIPC datosDesserializados; 
       
-   datosDesserializados = unserializePackage(datosRecibidos->data); 
+   datosDesserializados = NIPC_unserialize(datosRecibidos->data); 
    
    mensajeRecibido = (char *) datosDesserializados.Payload;    
    printf("%d > %s\n", socket, mensajeRecibido);  
@@ -35,7 +35,7 @@ void actionServer(struct package * datosRecibidos, int socket, int * matarServid
    dataToSerialize.Length = strlen(mensajeAEnviar);
    dataToSerialize.Payload = (void *) mensajeAEnviar;
    
-   packageToSend = serializePackage(dataToSerialize);
+   packageToSend = NIPC_serialize(dataToSerialize);
        
    sendMessage(packageToSend, socket);
 }

@@ -1,4 +1,4 @@
-#include "lib/serializacion.c"
+#include "lib/NIPC.c"
 #include "lib/cliente.c"
 #include "lib/comunes.c"
 
@@ -21,12 +21,12 @@ int main(void)
   dataToSerialize.Type = 1;
   dataToSerialize.Length = strlen(mensaje);
   dataToSerialize.Payload = (void *) mensaje;
-  packageToSend = serializePackage(dataToSerialize);
+  packageToSend = NIPC_serialize(dataToSerialize);
   
   socketDescriptor = initializeClient(LOCALHOST, PUERTO);    
   sendMessage(packageToSend, socketDescriptor);  
   recieveData(socketDescriptor, dataRecieved);
-  datosRecibidos = unserializePackage(dataRecieved->data);  
+  datosRecibidos = NIPC_unserialize(dataRecieved->data);  
   
   respuesta = (char *) datosRecibidos.Payload;
    

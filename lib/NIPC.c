@@ -1,4 +1,4 @@
-#include "serializacion.h"
+#include "NIPC.h"
 
 /*
  * Serialize a NIPC structure into a package that has the following structure. 
@@ -6,7 +6,7 @@
  * 0 - Type - 0 - Payload Length - 0 - Payload.
  * 
  */
-struct package serializePackage(struct NIPC messageToSerialize)
+struct package NIPC_serialize(struct NIPC messageToSerialize)
 {
 
   struct package serializedPackage;
@@ -39,7 +39,7 @@ struct package serializePackage(struct NIPC messageToSerialize)
  * 
  * The function returns a NIPC structure.  
  */
-struct NIPC unserializePackage(void * serializedPackage)
+struct NIPC NIPC_unserialize(void * serializedPackage)
 {
   struct NIPC unserializedMessage;
 
