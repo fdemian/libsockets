@@ -3,9 +3,9 @@
 /*
  * Static functions / Private API. 
  */ 
-static int initializeServer(fd_set * master, fd_set * read_fds, int * listener, int * fdmax, int max_conexiones, int puerto);
+static int initializeServer(fd_set * master, fd_set * read_fds, int * listener, int * fdmax, int maxConnections, int port);
 static int handleConnection(struct sockaddr_in * remoteaddr,int listener, int * fdmax, fd_set * master);
-static int handleClientDataRecieved(int cliente, fd_set * master, int fdmax, int listener, struct package * dataRecieved, int (*disconnectionHandler)(int cliente), int * killServer);
+static int handleClientDataRecieved(int client, fd_set * master, int fdmax, int listener, struct package * dataRecieved, int (*disconnectionHandler)(int cliente), int * killServer);
 
 void 
 startServer(void (*dataHandler)(struct package * data, int socket, int * killServer), int port, int maxConnections,int (*disconnectionHandler)(int disconnectedSocket))
@@ -102,13 +102,13 @@ handleConnection(struct sockaddr_in * remoteaddr, int listener, int * fdmax, fd_
 
 
 static int 
-handleClientDataRecieved(int cliente, fd_set * master, int fdmax, int listener, struct package * dataRecieved, int (*disconnectionHandler)(int cliente), int * killServer)
+handleClientDataRecieved(int clientSocket, fd_set * master, int fdmax, int listener, struct package * dataRecieved, int (*disconnectionHandler)(int cliente), int * killServer)
 {
   
   int bytesRecieved;  
   void * buffer = malloc(BUFFSIZE);
   
-  bytesRecieved = recv(cliente, buffer, BUFFSIZE, 0);    
+  bytesRecieved = recv(clientSocket, buffer, BUFFSIZE, 0);    
       
   if(bytesRecieved > 0) 
   {
@@ -120,13 +120,13 @@ handleClientDataRecieved(int cliente, fd_set * master, int fdmax, int listener, 
   }
   else 
   { 
-    if(disconnectionHandler(cliente) == -1)
+    if(disconnectionHandler(clientSocket) == -1)
     {
       *killServer = 1;  	
     }
     
-    close(cliente);
-    FD_CLR(cliente, master);
+    close(clientSocket);
+    FD_CLR(clientSocket, master);
     
     return ERROR_RECEIVE_SERV;
   }
@@ -136,7 +136,7 @@ handleClientDataRecieved(int cliente, fd_set * master, int fdmax, int listener, 
 
 
 static int 
-initializeServer(fd_set * master, fd_set * read_fds, int * listener, int * fdmax, int max_conexiones, int puerto)
+initializeServer(fd_set * master, fd_set * read_fds, int * listener, int * fdmax, int maxConnections, int port)
 {
   
   struct sockaddr_in selfAddress;	
@@ -158,7 +158,7 @@ initializeServer(fd_set * master, fd_set * read_fds, int * listener, int * fdmax
   
   selfAddress.sin_family = AF_INET;
   selfAddress.sin_addr.s_addr = INADDR_ANY;
-  selfAddress.sin_port = htons(puerto);
+  selfAddress.sin_port = htons(port);
   memset(&(selfAddress.sin_zero), '\0', 8);
 
   if (bind(*listener, (struct sockaddr *) &selfAddress, sizeof(selfAddress)) == -1) 
@@ -166,7 +166,7 @@ initializeServer(fd_set * master, fd_set * read_fds, int * listener, int * fdmax
     return ERROR_BIND;
   }
 
-  if (listen(*listener, max_conexiones) == -1) 
+  if (listen(*listener, maxConnections) == -1) 
   {
     return ERROR_LISTEN;
   }

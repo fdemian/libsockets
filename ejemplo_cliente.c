@@ -17,7 +17,7 @@ int main(void)
   
   struct NIPC datosRecibidos;
   struct NIPC dataToSerialize;
-    
+  
   dataToSerialize.Type = 1;
   dataToSerialize.Length = strlen(mensaje);
   dataToSerialize.Payload = (void *) mensaje;
