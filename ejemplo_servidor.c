@@ -3,46 +3,50 @@
 #include "lib/servidor.c"
 #include "lib/comunes.c"
 
-#define PUERTO 3490
-#define MAX_CONEXIONES 10
+#define PORT 3490
+#define MAX_CONNECTIONS 10
 #define LOCALHOST "127.0.0.1"
 
 void actionServer(struct package * datosRecibidos, int socket, int * matarServidor);
-int manejarDesconexionServidor(int socketCliente);
+int handleDisconnection(int clientSocket);
 
 int main(void)
 {
-  
-  startServer(actionServer, PUERTO, MAX_CONEXIONES, manejarDesconexionServidor);
+  startServer(actionServer, PORT, MAX_CONNECTIONS, handleDisconnection);
   
   return 0;
 }
 
-void actionServer(struct package * datosRecibidos, int socket, int * matarServidor)
+/*  
+ *  In this example we wait for a socket to send us data.
+ *  Once it does the body of actionServer is executed, unserializing the data that was sent and printing it. 
+ *  It then sends a NIPC-serialized message to the socket in question.  
+ */
+void actionServer(struct package * dataRecieved, int socket, int * killServer)
 {
-   char * mensajeRecibido = NULL;
-   char * mensajeAEnviar = "Soy servidor.";    
+   char * messageRecieved = NULL;
+   char * messageToSend = "You are the client.";    
    struct package packageToSend;
    struct NIPC dataToSerialize; 
-   struct NIPC datosDesserializados; 
+   struct NIPC unserializedData; 
       
-   datosDesserializados = NIPC_unserialize(datosRecibidos->data); 
+   unserializedData = NIPC_unserialize(dataRecieved->data); 
    
-   mensajeRecibido = (char *) datosDesserializados.Payload;    
-   printf("%d > %s\n", socket, mensajeRecibido);  
+   messageRecieved = (char *) unserializedData.Payload;    
+   printf("%d > %s\n", socket, messageRecieved);  
    
    dataToSerialize.Type = 1;
-   dataToSerialize.Length = strlen(mensajeAEnviar);
-   dataToSerialize.Payload = (void *) mensajeAEnviar;
+   dataToSerialize.Length = strlen(messageToSend);
+   dataToSerialize.Payload = (void *) messageToSend;
    
    packageToSend = NIPC_serialize(dataToSerialize);
        
    sendMessage(packageToSend, socket);
 }
 
-int manejarDesconexionServidor(int socketCliente)
+int handleDisconnection(int clientSocket)
 {
-  printf("El cliente en el socket %d se desconecto.\n", socketCliente); 
-  	
+  printf("Socket %d disconnected.\n", clientSocket); 
+  
   return 0; 
 }
