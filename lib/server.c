@@ -1,3 +1,4 @@
+#include <sys/select.h> 
 #include "server.h"
 
 /*
@@ -29,7 +30,7 @@ startServer(void (*dataHandler)(struct package * data, int socket, int * killSer
   {	  
     *read_fds = *master;
     
-    if (select(*fdmax + 1, read_fds, NULL, NULL, NULL) != -1)
+    if(select(*fdmax + 1, read_fds, NULL, NULL, NULL) != -1)
     {
       for (connectionIndex = 0; connectionIndex <= *fdmax; connectionIndex++)
       {

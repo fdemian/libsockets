@@ -1,4 +1,3 @@
-#include <sys/select.h> 
 #include "sockets.h"
 
 /*
